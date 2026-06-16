@@ -337,6 +337,11 @@
       background: var(--neutral-soft);
     }
 
+    .pill.agree {
+      color: #1d4ed8;
+      background: #dbeafe;
+    }
+
     .agreement {
       font-size: 15px;
       font-weight: 700;
@@ -1051,7 +1056,7 @@
       return titleItems(rule, product).map((item) => `
         <div class="title-line">
           <div class="rate">${formatMultiline(normalizeTitleRate(item.rateText))}</div>
-          ${item.agreement ? `<span class="pill ${pillClass(rule.status)}">${escapeHtml(item.agreement)}</span>` : ""}
+          ${item.agreement ? `<span class="pill agree">${escapeHtml(item.agreement)}</span>` : ""}
         </div>
       `).join("") + `
         <div class="title-line">
