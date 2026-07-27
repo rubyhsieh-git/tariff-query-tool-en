@@ -709,7 +709,7 @@
         <div class="plus">+</div>
         <div class="primer-box policy">
           <div class="primer-title">Policy-based additional tariffs</div>
-          <div class="primer-copy">e.g. Trump reciprocal tariffs, temporary surcharges.</div>
+          <div class="primer-copy">e.g. Trump Section 301 Forced Labor Tariff.</div>
         </div>
         <div class="plus">=</div>
         <div class="primer-box total">
@@ -792,7 +792,7 @@
             <th>Import market</th>
             <th>Production area</th>
             <th>Product tariff</th>
-            <th>Trump policy surcharge</th>
+            <th>Trump Section 301 Forced Labor Tariff</th>
             <th>Agreement</th>
             <th>Rules of origin</th>
           </tr>
@@ -982,6 +982,7 @@
 
     function trumpTariff(rule) {
       if (rule.market !== "United States") return "N/A";
+      if (rule.origin === "Vietnam" || rule.origin === "Egypt") return "12.5%";
       if (rule.origin === "El Salvador" || rule.origin === "Guatemala") return "10% → 0%";
       return "10%";
     }
@@ -989,11 +990,10 @@
     function trumpAlertHtml(rule) {
       if (rule.market !== "United States") return "";
       const extra = rule.origin === "El Salvador" || rule.origin === "Guatemala"
-        ? `<div class="us-alert-extra">If CAFTA-DR rules of origin are met, garments may be exempt from the policy surcharge, i.e. 10% → 0%.</div>`
+        ? `<div class="us-alert-extra">If CAFTA-DR rules of origin are met, garments are exempt from the Trump Section 301 Forced Labor Tariff, i.e. 10% → 0%.</div>`
         : "";
       const base = `
-        <div class="us-alert-main">In addition to the product tariff itself, a Trump policy surcharge applies:<span class="us-alert-rate">10%</span></div>
-        <div class="us-alert-date">(Trump's temporary tariff is currently estimated to apply until 2026/7/24)</div>
+        <div class="us-alert-main">In addition to the product tariff itself, the Trump Section 301 Forced Labor Tariff applies:<span class="us-alert-rate">${trumpTariff(rule)}</span></div>
         ${extra}
       `;
       return base;
@@ -1177,7 +1177,7 @@
           <td>${escapeHtml(rule.market)}</td>
           <td>${escapeHtml(rule.origin)}</td>
           <td><strong>${escapeHtml(product)}</strong><br><span class="pill ${pillClass(rule.status)}">${escapeHtml(rule.status)}</span></td>
-          <td><strong>${escapeHtml(trump)}</strong><br><span class="small">${escapeHtml(rule.market === "United States" ? "Policy surcharge (reference)" : "Shown for U.S. market only")}</span></td>
+          <td><strong>${escapeHtml(trump)}</strong><br><span class="small">${escapeHtml(rule.market === "United States" ? "Section 301 forced labor tariff" : "Shown for U.S. market only")}</span></td>
           <td>${escapeHtml(rule.agreement)}</td>
           <td>${escapeHtml(rule.originRule)}${rule.details ? `<br><br><span class="small">${rule.details.map(escapeHtml).join("<br>")}</span>` : ""}</td>
         </tr>
