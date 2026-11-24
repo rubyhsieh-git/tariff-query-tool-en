@@ -1,1225 +1,436 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Apparel Product Tariff Lookup Tool (version: 2026/5/11)</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f7f7f4;
-      --panel: #ffffff;
-      --ink: #202124;
-      --muted: #636a73;
-      --line: #d9d9d3;
-      --accent: #0f766e;
-      --accent-soft: #d8f3ea;
-      --warn: #9a6700;
-      --warn-soft: #fff0c2;
-      --bad: #b42318;
-      --bad-soft: #ffe2dd;
-      --neutral-soft: #e9eef3;
-      --shadow: 0 1px 2px rgba(24, 30, 35, 0.05);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    .app {
-      width: min(1120px, calc(100vw - 32px));
-      margin: 24px auto 48px;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      line-height: 1.2;
-      letter-spacing: 0;
-    }
-
-    .meta {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .origin-compare {
-      grid-column: 1 / -1;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      padding: 12px;
-    }
-
-    .origin-compare-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .origin-checks {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .origin-check {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 30px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 4px 10px;
-      background: #f8faf9;
-      color: #30343a;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .origin-check:has(input:checked) {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: #07584f;
-    }
-
-    .origin-check input {
-      width: 16px;
-      height: 16px;
-      padding: 0;
-      accent-color: var(--accent);
-    }
-
-    .duty-primer {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-      gap: 10px;
-      align-items: stretch;
-      margin-bottom: 16px;
-    }
-
-    .duty-primer-wrap {
-      margin-bottom: 16px;
-      border: 1px solid #b7d7d2;
-      border-radius: 8px;
-      background: #eef8f6;
-      padding: 10px 12px 12px;
-    }
-
-    .duty-primer-wrap summary {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      color: #0f4f49;
-      font-size: 14px;
-      font-weight: 800;
-      user-select: none;
-      list-style: none;
-    }
-
-    .duty-primer-wrap summary::marker {
-      content: "";
-    }
-
-    .duty-primer-wrap summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .duty-primer-wrap summary::before {
-      content: "+";
-      width: 22px;
-      height: 22px;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #0f766e;
-      color: #fff;
-      font-size: 16px;
-      line-height: 1;
-      flex: 0 0 auto;
-    }
-
-    .duty-primer-wrap[open] summary::before {
-      content: "-";
-    }
-
-    .primer-box {
-      min-height: 96px;
-      padding: 13px 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: var(--shadow);
-    }
-
-    .primer-box.product {
-      border-color: #e5b300;
-      box-shadow: inset 0 4px 0 #f5c400;
-    }
-
-    .primer-box.remedy {
-      border-color: #dda7a7;
-      box-shadow: inset 0 4px 0 #e9b7b7;
-    }
-
-    .primer-box.policy {
-      border-color: #8ab4f8;
-      box-shadow: inset 0 4px 0 #8ab4f8;
-    }
-
-    .primer-box.total {
-      border-color: #0f766e;
-      box-shadow: inset 0 4px 0 #0f766e;
-    }
-
-    .primer-title {
-      font-weight: 900;
-      margin-bottom: 7px;
-    }
-
-    .primer-copy {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .plus {
-      display: grid;
-      place-items: center;
-      color: #111827;
-      font-size: 30px;
-      font-weight: 900;
-    }
-
-    label {
-      display: block;
-      color: #30343a;
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    select,
-    input {
-      width: 100%;
-      height: 38px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: #fff;
-      color: var(--ink);
-      padding: 0 13px;
-      font: inherit;
-      outline: none;
-    }
-
-    select:focus,
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-      gap: 16px;
-      align-items: start;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-
-    .result {
-      padding: 20px;
-    }
-
-    .compare-results {
-      display: grid;
-      gap: 14px;
-    }
-
-    .compare-card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      background: #fff;
-    }
-
-    .compare-card .result-top {
-      padding-bottom: 10px;
-      margin-bottom: 12px;
-    }
-
-    .compare-card .rate {
-      font-size: 21px;
-    }
-
-    .result-top {
-      display: grid;
-      gap: 8px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 14px;
-    }
-
-    .title-line {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .rate {
-      font-size: 25px;
-      line-height: 1.15;
-      font-weight: 800;
-      letter-spacing: 0;
-      white-space: pre-line;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      border-radius: 999px;
-      padding: 3px 9px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #07584f;
-      background: var(--accent-soft);
-      white-space: normal;
-    }
-
-    .pill.warning {
-      color: var(--warn);
-      background: var(--warn-soft);
-    }
-
-    .pill.bad {
-      color: var(--bad);
-      background: var(--bad-soft);
-    }
-
-    .pill.neutral {
-      color: #425466;
-      background: var(--neutral-soft);
-    }
-
-    .pill.agree {
-      color: #1d4ed8;
-      background: #dbeafe;
-    }
-
-    .agreement {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    .section {
-      margin-top: 14px;
-    }
-
-    .section-title {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 5px;
-    }
-
-    .section-body {
-      white-space: pre-line;
-    }
-
-    .link-list {
-      display: grid;
-      gap: 6px;
-    }
-
-    .link-list a {
-      color: #075db3;
-      text-decoration: none;
-      overflow-wrap: anywhere;
-    }
-
-    .link-list a:hover {
-      text-decoration: underline;
-    }
-
-    .note {
-      color: #3f4650;
-      background: #f7faf9;
-      border-left: 3px solid var(--accent);
-      padding: 10px 12px;
-      border-radius: 6px;
-      white-space: pre-line;
-    }
-
-    .us-alert {
-      color: #12395d;
-      background: #eaf4ff;
-      border-left: 3px solid #2f80ed;
-      padding: 10px 12px;
-      border-radius: 6px;
-    }
-
-    .us-alert-main {
-      font-weight: 700;
-    }
-
-    .us-alert-rate {
-      font-size: 16px;
-      font-weight: 900;
-      margin-left: 4px;
-    }
-
-    .us-alert-date {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .us-alert-extra {
-      margin-top: 6px;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .overview {
-      overflow: hidden;
-    }
-
-    .overview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .overview-title {
-      font-weight: 800;
-    }
-
-    .overview-subtitle {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 2px;
-    }
-
-    .market-list {
-      display: grid;
-      gap: 1px;
-      background: var(--line);
-    }
-
-    .market-row {
-      display: grid;
-      grid-template-columns: 128px 1fr auto;
-      gap: 10px;
-      align-items: center;
-      min-height: 58px;
-      padding: 9px 14px;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    .market-row:hover {
-      background: #f9fbfa;
-    }
-
-    .market-row.active {
-      box-shadow: inset 3px 0 0 var(--accent);
-      background: #f4fbf8;
-    }
-
-    .origin-name {
-      font-weight: 800;
-    }
-
-    .market-summary {
-      min-width: 0;
-      color: var(--muted);
-      font-size: 13px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #9ca3af;
-    }
-
-    .status-dot.good {
-      background: #10b981;
-    }
-
-    .status-dot.mid {
-      background: #f59e0b;
-    }
-
-    .status-dot.bad {
-      background: #ef4444;
-    }
-
-    .status-legend {
-      display: grid;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff;
-      border-top: 1px solid var(--line);
-    }
-
-    .legend-item {
-      display: grid;
-      grid-template-columns: 14px 1fr;
-      gap: 8px;
-      align-items: start;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .legend-item .status-dot {
-      margin-top: 4px;
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 12px;
-      margin: 10px 0;
-    }
-
-    .database-wrap {
-      margin-top: 22px;
-    }
-
-    .database-wrap summary {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      color: #184e4a;
-      font-size: 14px;
-      font-weight: 900;
-      list-style: none;
-      user-select: none;
-    }
-
-    .database-wrap summary::marker {
-      content: "";
-    }
-
-    .database-wrap summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .database-wrap summary::before {
-      content: "+";
-      width: 22px;
-      height: 22px;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #184e4a;
-      color: #fff;
-      font-size: 16px;
-      line-height: 1;
-      flex: 0 0 auto;
-    }
-
-    .database-wrap[open] summary::before {
-      content: "-";
-    }
-
-    .table-tools {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(140px, 1fr));
-      gap: 10px;
-      align-items: end;
-      width: min(760px, 100%);
-    }
-
-    .table-tools label {
-      font-size: 12px;
-    }
-
-    .search {
-      min-width: 180px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid var(--line);
-      padding: 10px 12px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    thead th {
-      background: #184e4a;
-      color: #fff;
-      font-size: 12px;
-      white-space: nowrap;
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
-    }
-
-    thead th:first-child {
-      border-top-left-radius: 8px;
-    }
-
-    thead th:last-child {
-      border-top-right-radius: 8px;
-    }
-
-    th:nth-child(2),
-    td:nth-child(2) {
-      width: 76px;
-      min-width: 76px;
-      white-space: normal;
-      word-break: keep-all;
-      overflow-wrap: normal;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .small {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    @media (max-width: 820px) {
-      .app {
-        width: min(100vw - 20px, 680px);
-        margin-top: 16px;
-      }
-
-      header,
-      .toolbar {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      .table-tools {
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-      }
-
-      .search {
-        grid-column: 1 / -1;
-      }
-
-      .controls,
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .duty-primer {
-        grid-template-columns: 1fr;
-      }
-
-      .plus {
-        display: grid;
-        min-height: 16px;
-        margin: -2px 0;
-        font-size: 24px;
-      }
-
-      .market-row {
-        grid-template-columns: 110px 1fr auto;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apparel Product Tariff Lookup Tool</title>
+<style>
+  :root{
+    --bg:#f6f5f0; --card:#fff; --line:#e3e1d8; --ink:#1f2a24; --muted:#6b726c;
+    --brand:#1f6b4f; --brand-soft:#e8f3ee;
+    --good:#1f9d6a; --good-bg:#e6f6ef; --mid:#d99a0b; --mid-bg:#fff5dc; --bad:#d64545; --bad-bg:#fdeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Helvetica Neue",Arial,"Noto Sans",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 40px}
+  h1{font-size:22px;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px;margin-top:6px}
+  .news{margin-top:10px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:10px;padding:10px 14px}
+  .news h4{margin:0 0 6px;font-size:14px;color:var(--brand)}
+  .news ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .news li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;cursor:pointer}
+  .news li:hover .nname{text-decoration:underline}
+  .news .route{font-size:12.5px;color:var(--muted)}
+  .nbadge{font-size:12px;font-weight:700;border-radius:999px;padding:1px 10px;white-space:nowrap}
+  .nbadge.soon{background:#fff1d6;color:#9a5b00} .nbadge.live{background:var(--good-bg);color:#11734c} .nbadge.signed{background:#eef0ff;color:#3943a8}
+  details.box{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:12px}
+  details.box>summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  details.box>summary::-webkit-details-marker{display:none}
+  details.box>summary::before{content:"+";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;font-size:14px;flex:none}
+  details.box[open]>summary::before{content:"−"}
+  details.box .inner{padding:0 14px 14px}
+  .formula{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .formula .f{flex:1 1 150px;background:var(--brand-soft);border-radius:10px;padding:10px}
+  .formula .f b{display:block}
+  .formula .f small{color:var(--muted)}
+  .formula .op{align-self:center;font-size:22px;font-weight:700;color:var(--brand)}
+  .formula .f.total{background:var(--brand);color:#fff}
+  .formula .f.total small{color:#d8eee4}
+
+  .step{margin-top:16px}
+  .step-label{font-weight:700;font-size:14px;margin-bottom:6px}
+  .num-dot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;margin-right:6px}
+  .seg{display:flex;flex-wrap:wrap;gap:8px}
+  .seg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 18px;font-size:15px;cursor:pointer;font-family:inherit}
+  .seg button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;margin-top:14px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .panel h2{font-size:17px;margin:0}
+  .sub{color:var(--muted);font-size:13px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin:8px 0 10px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+  .dot.good{background:var(--good)} .dot.mid{background:var(--mid)} .dot.bad{background:var(--bad)}
+
+  .rank{display:flex;flex-direction:column;gap:8px}
+  .row{display:grid;grid-template-columns:22px 1fr auto;gap:4px 10px;align-items:center;border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:#fff}
+  .row:hover{background:#fafaf6}
+  .row.sel{outline:2px solid var(--brand);background:var(--brand-soft)}
+  .row.good{border-left-color:var(--good)} .row.mid{border-left-color:var(--mid)} .row.bad{border-left-color:var(--bad)}
+  .row input{width:17px;height:17px;margin:0;cursor:pointer}
+  .row .name{font-weight:700;font-size:15.5px}
+  .row .rate{text-align:right;font-weight:800;font-size:17px;white-space:nowrap}
+  .row .rate small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:normal;max-width:150px;margin-left:auto}
+  .row .name,.row .plain{min-width:0}
+  .chip{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .row .plain{grid-column:2 / 4;font-size:13px;color:#3d4640}
+  .row .chips{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;border-radius:999px;padding:1px 9px;background:#f0efe9;color:#444;white-space:nowrap}
+  .chip.good{background:var(--good-bg);color:#11734c} .chip.mid{background:var(--mid-bg);color:#8a5d00} .chip.bad{background:var(--bad-bg);color:#a52b2b}
+  .chip.flag{background:#eef0ff;color:#3943a8}
+
+  .detail .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .detail .route{font-size:19px;font-weight:800}
+  .big{margin-top:10px;border-radius:12px;padding:12px 14px}
+  .big.good{background:var(--good-bg)} .big.mid{background:var(--mid-bg)} .big.bad{background:var(--bad-bg)}
+  .big .lbl{font-size:13px;color:var(--muted)}
+  .big .num{font-size:30px;font-weight:800;line-height:1.15}
+  .big .cond{font-size:13px;margin-top:2px}
+  .calc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:13px}
+  .calc .c{background:#fff;border-radius:8px;padding:4px 9px;border:1px solid var(--line)}
+  .calc .c b{font-size:14px}
+  .sec{margin-top:14px}
+  .sec h3{font-size:14px;margin:0 0 6px;color:var(--brand)}
+  .oneline{background:#f7f7f2;border-radius:10px;padding:10px 12px;font-size:14.5px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  .btn{border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .btn:hover{background:var(--brand-soft)}
+  .qa{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:14px}
+  .qa .q{color:var(--muted)}
+  .rawrule{font-size:12.5px;color:var(--muted);margin-top:6px;white-space:pre-line}
+  .agree{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:14px}
+  .agree b{display:block}
+  .note{font-size:13.5px;border-left:3px solid var(--line);padding-left:10px;margin-bottom:6px}
+  .note.flag{border-left-color:#5b66d6;background:#f4f5ff;padding:6px 10px;border-radius:0 8px 8px 0}
+  @media (min-width:821px){.detail{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
+  .links a{color:var(--brand);font-size:13.5px;margin-right:12px}
+
+  .term{border-bottom:1px dashed #8a948d;cursor:help;position:relative}
+  .term.link{color:#1d5fbf;border-bottom:1px solid #1d5fbf}
+  .term:hover::after,.term.show::after{content:attr(data-tip);position:absolute;left:0;top:125%;z-index:20;width:min(300px,75vw);background:#1f2a24;color:#fff;font-size:12.5px;line-height:1.5;font-weight:400;padding:8px 10px;border-radius:8px;white-space:normal;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+  .cmp{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+  thead th{position:sticky;top:0;background:var(--brand);color:#fff;z-index:2;white-space:nowrap}
+  .cmp th:first-child{white-space:nowrap;background:#f3f2ec;color:var(--ink);position:sticky;left:0}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  select,input[type=search]{font-family:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  input[type=search]{min-width:240px}
+  .dbwrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .muted{color:var(--muted)}
+  .gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+  .gloss div{background:#f7f7f2;border-radius:8px;padding:8px 10px;font-size:13.5px}
+  .gloss b{color:var(--brand)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f2a24;color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  @media (max-width:820px){
+    .grid{grid-template-columns:1fr}
+    .formula .op{width:100%;text-align:center;line-height:1}
+    h1{font-size:19px}
+    .big .num{font-size:26px}
+    .row .rate small{display:none}
+    .row .rate{font-size:16px}
+  }
+</style>
 </head>
 <body>
-  <main class="app">
-    <header>
-      <div>
-        <h1>Apparel Product Tariff Lookup Tool (version: 2026/5/11)</h1>
-        <div class="meta">Tariff provisions are updated continually; rates are for preliminary reference only. For HS codes and detailed rates, please consult Logistics, whose determination prevails.</div>
-      </div>
-    </header>
+<div class="wrap">
 
-    <details class="duty-primer-wrap" id="dutyPrimer" open>
-      <summary>Tariff Structure Reminder (click to expand or collapse)</summary>
-      <section class="duty-primer" aria-label="Tariff structure reminder">
-        <div class="primer-box product">
-          <div class="primer-title">Product tariff itself</div>
-          <div class="primer-copy">MFN rates, FTA preferential rates, GSP/LDC, etc.</div>
-        </div>
-        <div class="plus">+</div>
-        <div class="primer-box remedy">
-          <div class="primer-title">Trade-remedy duties</div>
-          <div class="primer-copy">Section 301, anti-dumping, countervailing duties, etc.</div>
-        </div>
-        <div class="plus">+</div>
-        <div class="primer-box policy">
-          <div class="primer-title">Policy-based additional tariffs</div>
-          <div class="primer-copy">e.g. Trump Section 301 Forced Labor Tariff.</div>
-        </div>
-        <div class="plus">=</div>
-        <div class="primer-box total">
-          <div class="primer-title">Estimated total tariff burden</div>
-          <div class="primer-copy">Before quoting, weigh the combined effect, not just the FTA.</div>
-        </div>
-      </section>
-    </details>
+  <header>
+    <h1>Apparel Product Tariff Lookup Tool</h1>
+    <div class="meta">
+      <span>Data updated: <b id="dataDate"></b></span>
+      <span>For preliminary reference only. For HS codes and detailed rates, please consult Logistics, whose determination prevails.</span>
+    </div>
+    <div class="news" id="news"></div>
+  </header>
 
-    <section class="controls" aria-label="Query conditions">
-      <div>
-        <label for="originSelect">Production area (exporting country)</label>
-        <select id="originSelect"></select>
+  <details class="box" id="howBox">
+    <summary>How are tariffs calculated? (click to expand / collapse)</summary>
+    <div class="inner">
+      <div class="formula">
+        <div class="f"><b>Product tariff</b><small>General rate (MFN), or the preferential rate when an agreement applies</small></div>
+        <div class="op">+</div>
+        <div class="f"><b>Trade-remedy duties</b><small>Anti-dumping, countervailing, etc. Not included in this tool — please consult Logistics</small></div>
+        <div class="op">+</div>
+        <div class="f"><b>Policy-based additional tariffs</b><small>U.S.: Trump Section 301 Forced Labor Tariff, included in this tool</small></div>
+        <div class="op">=</div>
+        <div class="f total"><b>Estimated total burden</b><small>Use this figure when quoting — not just the agreement</small></div>
       </div>
-      <div>
-        <label for="marketSelect">Import market</label>
-        <select id="marketSelect"></select>
+    </div>
+  </details>
+
+  <section class="step">
+    <div class="step-label"><span class="num-dot">1</span>Which market is the customer selling to?</div>
+    <div class="seg" id="marketSeg"></div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2 id="rankTitle"></h2>
+      <div class="sub"><span class="num-dot" style="width:18px;height:18px;font-size:11px;margin-right:4px">2</span>Click an origin for details; tick the boxes to compare side by side</div>
+      <div class="legend">
+        <span><i class="dot good"></i>Favorable: 0% with few material restrictions</span>
+        <span><i class="dot mid"></i>Preference available, but conditions apply or depends on item</span>
+        <span><i class="dot bad"></i>No preference</span>
       </div>
-      <div class="origin-compare">
-        <div class="origin-compare-head">
-          <label>Select production areas to compare</label>
-          <span class="small">Tick multiple production areas to compare product tariffs and rules of origin in the same market.</span>
-        </div>
-        <div class="origin-checks" id="originChecks"></div>
-      </div>
+      <div class="rank" id="rank"></div>
     </section>
 
-    <section class="main-grid">
-      <article class="card result" id="resultCard" aria-live="polite"></article>
-      <aside class="card overview">
-        <div class="overview-header">
-          <div>
-            <div class="overview-title">Tariff comparison across production areas</div>
-            <div class="overview-subtitle" id="overviewSubtitle"></div>
-          </div>
-        </div>
-        <div class="status-legend" aria-label="Status legend">
-          <div class="legend-item"><span class="status-dot bad"></span><span>Red: no special tariff preference — unfavorable</span></div>
-          <div class="legend-item"><span class="status-dot mid"></span><span>Yellow: some tariff preference, but depends on conditions and items</span></div>
-          <div class="legend-item"><span class="status-dot good"></span><span>Green: zero tariff with lenient rules of origin — favorable</span></div>
-        </div>
-        <div class="market-list" id="marketList"></div>
-      </aside>
-    </section>
+    <section class="panel detail" id="detail"></section>
+  </div>
 
-    <details class="database-wrap" open>
-      <summary>Product Tariff Database (click to expand or collapse)</summary>
-      <section class="toolbar">
-        <div>
-          <div class="overview-title">Product Tariff Database</div>
-          <div class="small">Filter by production area, market, or agreement status, or search by keyword.</div>
-        </div>
-        <div class="table-tools">
-          <div>
-            <label for="tableOriginFilter">Production area</label>
-            <select id="tableOriginFilter"></select>
-          </div>
-          <div>
-            <label for="tableMarketFilter">Market</label>
-            <select id="tableMarketFilter"></select>
-          </div>
-          <div>
-            <label for="agreementFilter">Trade agreement</label>
-            <select id="agreementFilter">
-              <option value="all">All</option>
-              <option value="yes">With agreement/preference</option>
-              <option value="no">No agreement/MFN</option>
-            </select>
-          </div>
-          <div class="search">
-            <label for="keywordInput">Search</label>
-            <input id="keywordInput" type="search" placeholder="e.g. CPTPP, fabric, QIZ, Canada" />
-          </div>
-        </div>
-      </section>
+  <section class="panel" id="cmpPanel" style="margin-top:14px" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <h2 id="cmpTitle"></h2>
+      <button class="btn" id="clearCmp">Clear selection</button>
+    </div>
+    <div class="cmp" style="margin-top:10px"><table id="cmpTable"></table></div>
+  </section>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Import market</th>
-            <th>Production area</th>
-            <th>Product tariff</th>
-            <th>Trump Section 301 Forced Labor Tariff</th>
-            <th>Agreement</th>
-            <th>Rules of origin</th>
-          </tr>
-        </thead>
-        <tbody id="ruleTable"></tbody>
-      </table>
-    </details>
-  </main>
+  <details class="box">
+    <summary>Glossary (all the abbreviations explained)</summary>
+    <div class="inner"><div class="gloss" id="gloss"></div></div>
+  </details>
 
-  <script>
-    const rules = [
-      { market: "United States", origin: "Vietnam", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates; check the 10-digit HTS for the actual rate." },
-      { market: "United States", origin: "Indonesia", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates; check the 10-digit HTS for the actual rate." },
-      { market: "United States", origin: "Cambodia", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates; check the 10-digit HTS for the actual rate." },
-      { market: "United States", origin: "El Salvador", rate: "0% tariff", agreement: "CAFTA-DR (Dominican Republic\u2013Central America FTA)", status: "Favorable (verify conditions)", originRule: "Yarn-forward: CAFTA countries or the U.S.", note: "Applies to Costa Rica, El Salvador, Honduras, Guatemala, Nicaragua, Dominican Republic." },
-      { market: "United States", origin: "Guatemala", rate: "0% tariff", agreement: "CAFTA-DR (Dominican Republic\u2013Central America FTA)", status: "Favorable (verify conditions)", originRule: "Yarn-forward: CAFTA countries or the U.S.", note: "Applies to Costa Rica, El Salvador, Honduras, Guatemala, Nicaragua, Dominican Republic." },
-      { market: "United States", origin: "Bangladesh", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates." },
-      { market: "United States", origin: "Jordan", rate: "0% tariff", agreement: "U.S.\u2013Jordan FTA", status: "Favorable (verify conditions)", originRule: "No material restriction, but at least 35% of value must be processed in Jordan.", note: "Keep value-content and production records." },
-      { market: "United States", origin: "Egypt", rate: "0% tariff", agreement: "QIZ-Egypt (Qualifying Industrial Zones)", status: "Favorable (verify conditions)", originRule: "No material restriction, but production must be completed within an Egyptian QIZ, with total value-added reaching 35% of FOB value, of which:\n1. Egyptian value-added at least 11.7%\n2. Israeli value-added at least 10.5%\n3. The remainder may come from the Egyptian QIZ, Israel or the U.S.", note: "High compliance risk; confirm QIZ eligibility and value-added ratios." },
-      { market: "United States", origin: "Sri Lanka", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates; check the 10-digit HTS for the actual rate." },
-      { market: "United States", origin: "India", rate: "approx. 15.3% on average", agreement: "No preferential tariff", status: "Unfavorable", originRule: "No FTA preference currently.", note: "Based on U.S. MFN rates; check the 10-digit HTS for the actual rate." },
+  <details class="box">
+    <summary>Full product tariff database (click to expand / collapse)</summary>
+    <div class="inner">
+      <div class="filters">
+        <select id="fOrigin"></select>
+        <select id="fMarket"></select>
+        <select id="fAgree">
+          <option value="all">All</option>
+          <option value="yes">With agreement / preference</option>
+          <option value="no">No preference (MFN)</option>
+        </select>
+        <input type="search" id="fKey" placeholder="Keyword, e.g. yarn-forward, EBA, 0%">
+      </div>
+      <div class="dbwrap"><table id="db"></table></div>
+    </div>
+  </details>
 
-      { market: "Europe", origin: "Vietnam", rate: "42.5% of garments duty-free immediately, the rest phased down to 0% by 2027", agreement: "EU\u2013Vietnam FTA (EVFTA)", status: "Neutral / depends on items", originRule: "Fabric: Vietnam, South Korea, or countries that in future have FTAs with both the EU and Vietnam.", note: "" },
-      { market: "Europe", origin: "Indonesia", rate: "9.6%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "Standard GSP: fabric must come from Cambodia, Indonesia, Vietnam, the Philippines, Myanmar, Laos, etc.", note: "Indonesia\u2013EU CEPA (IEU-CEPA) was signed in Sep 2025 and is expected to enter into force in 2027; await detailed rules after entry into force." },
-      { market: "Europe", origin: "Cambodia", rate: "0% tariff / a small portion 12%", agreement: "EU Everything But Arms (EBA)", status: "Favorable (verify conditions)", originRule: "No material restriction.", note: "Some EBA preferences have been withdrawn; depends on items." },
-      { market: "Europe", origin: "El Salvador", rate: "0% tariff", agreement: "EU\u2013Central America Association Agreement (EU-CAAA)", status: "Favorable (verify conditions)", originRule: "Fabric: Central America, EU, Mexico, South America, Caribbean, etc.; or unrestricted yarn source but fabric must be made in the beneficiary country.", note: "Some items subject to quotas." },
-      { market: "Europe", origin: "Guatemala", rate: "0% tariff", agreement: "EU\u2013Central America Association Agreement (EU-CAAA)", status: "Favorable (verify conditions)", originRule: "Fabric: Central America, EU, Mexico, South America, Caribbean, etc.; or unrestricted yarn source but fabric must be made in the beneficiary country.", note: "Some items subject to quotas." },
-      { market: "Europe", origin: "Bangladesh", rate: "0% tariff", agreement: "EU Everything But Arms (EBA)", status: "Favorable", originRule: "No material restriction.", note: "LDC-based preference; still confirm the latest EBA status." },
-      { market: "Europe", origin: "Jordan", rate: "0% tariff", agreement: "EU\u2013Jordan Association Agreement", status: "Favorable (verify conditions)", originRule: "No material restriction, but at least 70% of value must be processed in Jordan, and 15% of the workforce must be Syrian refugees.", note: "High compliance risk." },
-      { market: "Europe", origin: "Egypt", rate: "0% tariff", agreement: "EU\u2013Egypt Association Agreement", status: "Favorable (verify conditions)", originRule: "Fabric: Egypt, Jordan, Turkey (or third-country yarn allowed if the fabric is woven or printed first), and at least 60% of value processed in Egypt.", note: "Confirm material origin and value content." },
-      { market: "Europe", origin: "Sri Lanka", rate: "0% tariff", agreement: "GSP+ (Special Incentive Arrangement)", status: "Favorable (verify conditions)", originRule: "Fabric: Bangladesh, India, Sri Lanka, Pakistan, etc.", note: "" },
-      { market: "Europe", origin: "India", rate: "mostly 9.6%", agreement: "Standard GSP / EU\u2013India FTA", status: "Neutral / depends on items", originRule: "Fabric: Bangladesh, India, Sri Lanka, Pakistan, etc.", note: "The EU\u2013India FTA was signed in Jan 2026 but is not yet formally in force; await detailed rules after entry into force." },
+</div>
+<div class="toast" id="toast">Copied</div>
 
-      { market: "Japan", origin: "Vietnam", rate: "70% of products duty-free immediately, the rest phased down to 0% from 2022\uff1b0% tariff", agreement: "RCEP (Regional Comprehensive Economic Partnership) / AJCEP (ASEAN\u2013Japan CEP)", status: "Favorable (verify conditions)", originRule: "RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.", note: "" },
-      { market: "Japan", origin: "Indonesia", rate: "70% of products duty-free immediately, the rest phased down to 0% from 2023\uff1b0% tariff", agreement: "RCEP (Regional Comprehensive Economic Partnership) / AJCEP (ASEAN\u2013Japan CEP)", status: "Favorable (verify conditions)", originRule: "RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.", note: "" },
-      { market: "Japan", origin: "Cambodia", rate: "0% tariff\uff1b0% tariff\uff1b70% of products duty-free immediately, the rest phased down to 0% from 2022", agreement: "LDC preferences (Least Developed Country) / AJCEP (ASEAN\u2013Japan CEP) / RCEP (Regional Comprehensive Economic Partnership)", status: "Favorable", originRule: "LDC and RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.", note: "" },
-      { market: "Japan", origin: "El Salvador", rate: "0% \u2013 7.2%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Preferential rates vary by item." },
-      { market: "Japan", origin: "Guatemala", rate: "0% \u2013 7.2%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Preferential rates vary by item." },
-      { market: "Japan", origin: "Bangladesh", rate: "0% tariff", agreement: "LDC preferences (Least Developed Country) / Japan\u2013Bangladesh EPA (BJEPA)", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "Japan", origin: "Jordan", rate: "0% \u2013 7.2%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Preferential rates vary by item." },
-      { market: "Japan", origin: "Egypt", rate: "0% \u2013 7.2%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Preferential rates vary by item." },
-      { market: "Japan", origin: "Sri Lanka", rate: "0% \u2013 7.2%", agreement: "Standard GSP", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Preferential rates vary by item." },
-      { market: "Japan", origin: "India", rate: "0% tariff", agreement: "India\u2013Japan CEPA", status: "Favorable", originRule: "No material restriction.", note: "" },
+<script>
+const DATA_DATE = "November 2026";
+const US = "United States";
+const S301 = "Trump Section 301 Forced Labor Tariff";
 
-      { market: "Canada", origin: "Vietnam", rate: "0% tariff", agreement: "CPTPP", status: "Favorable (verify conditions)", originRule: "Yarn-forward: Vietnam or CPTPP countries.", note: "Be careful if yarn comes from non-CPTPP countries." },
-      { market: "Canada", origin: "Indonesia", rate: "currently ~18% on average", agreement: "Indonesia\u2013Canada CEPA (ICA-CEPA) (signed, not yet in force)", status: "Neutral / depends on items", originRule: "Await detailed rules after entry into force.", note: "Indonesia\u2013Canada CEPA (ICA-CEPA) was signed in Sep 2025 and is expected to enter into force as early as H2 2026; await detailed rules after entry into force." },
-      { market: "Canada", origin: "Cambodia", rate: "0% tariff", agreement: "LDC preferences (Least Developed Country)", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "Canada", origin: "El Salvador", rate: "No single tariff rule; check item by item; some products better than MFN", agreement: "General Preferential Tariff (GPT)", status: "Neutral / depends on items", originRule: "Mostly no material restriction.", note: "" },
-      { market: "Canada", origin: "Guatemala", rate: "~18% on average", agreement: "MFN", status: "Unfavorable", originRule: "No FTA preference currently.", note: "" },
-      { market: "Canada", origin: "Bangladesh", rate: "0% tariff", agreement: "LDC preferences (Least Developed Country)", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "Canada", origin: "Jordan", rate: "0% tariff", agreement: "Canada\u2013Jordan FTA (CJFTA)", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "Canada", origin: "Egypt", rate: "Some items better than MFN", agreement: "General Preferential Tariff (GPT)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Confirm against Canada's GPT and HS details." },
-      { market: "Canada", origin: "Sri Lanka", rate: "Some items better than MFN", agreement: "General Preferential Tariff (GPT)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Rates vary by item." },
-      { market: "Canada", origin: "India", rate: "~18% on average", agreement: "MFN", status: "Unfavorable", originRule: "No FTA preference currently.", note: "" },
+/* ===== Upcoming FTAs (eff = confirmed entry-into-force date; expect = expected month only) ===== */
+const FTA_NEWS = [
+  {market:"Canada", origin:"Indonesia", name:"Indonesia–Canada CEPA (ICA-CEPA)", eff:"2026-12-01", text:"confirmed to enter into force on 1 Dec 2026"},
+  {market:"Europe", origin:"Indonesia", name:"Indonesia–EU CEPA (IEU-CEPA)", expect:"Jan 2027", text:"formally signed on 21 Nov 2026; expected to enter into force in Indonesia in January 2027"}
+];
 
-      { market: "United Kingdom", origin: "Vietnam", rate: "42.5% of garments duty-free immediately, the rest phased down to 0% by 2027\uff1b0% tariff", agreement: "UK\u2013Vietnam FTA (UKVFTA) / CPTPP", status: "Favorable (verify conditions)", originRule: "UKVFTA fabric: Vietnam, South Korea, etc.; CPTPP yarn-forward: Vietnam or CPTPP countries, excl. Mexico/Canada.", note: "", details: ["UK\u2013Vietnam FTA (UKVFTA): 42.5% of garments duty-free immediately, the rest phased to 0% by 2027.", "CPTPP: 0% tariff; Origin: yarn-forward, yarn must come from Vietnam or CPTPP countries, excl. Mexico/Canada."] },
-      { market: "United Kingdom", origin: "Indonesia", rate: "mostly 9.6%", agreement: "DCTS Standard Preferences", status: "Neutral / depends on items", originRule: "Fabric: Cambodia/Indonesia/Vietnam/Philippines/Myanmar/Laos/India/Sri Lanka/Bangladesh, etc.", note: "From 2027 Indonesia is no longer eligible for DCTS; no preference, ~12% on average." },
-      { market: "United Kingdom", origin: "Cambodia", rate: "0% tariff", agreement: "DCTS Comprehensive Preferences", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "United Kingdom", origin: "El Salvador", rate: "0% tariff", agreement: "UK\u2013Central America Association Agreement (UK-CAAA)", status: "Favorable (verify conditions)", originRule: "Fabric: Central & South America, Caribbean, Mexico, EU, UK; or unrestricted yarn source but fabric must be made in the beneficiary country.", note: "Some items subject to quotas." },
-      { market: "United Kingdom", origin: "Guatemala", rate: "0% tariff", agreement: "UK\u2013Central America Association Agreement (UK-CAAA)", status: "Favorable (verify conditions)", originRule: "Fabric: Central & South America, Caribbean, Mexico, EU, UK; or unrestricted yarn source but fabric must be made in the beneficiary country.", note: "Some items subject to quotas." },
-      { market: "United Kingdom", origin: "Bangladesh", rate: "0% tariff", agreement: "DCTS Comprehensive Preferences", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "United Kingdom", origin: "Jordan", rate: "0% tariff", agreement: "UK\u2013Jordan Association Agreement", status: "Favorable (verify conditions)", originRule: "No material restriction, but 15% of the workforce must be Syrian refugees.", note: "" },
-      { market: "United Kingdom", origin: "Egypt", rate: "0% tariff", agreement: "UK\u2013Egypt Association Agreement", status: "Favorable (verify conditions)", originRule: "Fabric: EU, Turkey, UK, Switzerland, Iceland, Norway, Jordan, Israel; or unrestricted yarn source but fabric must be made in Egypt.", note: "Confirm material origin." },
-      { market: "United Kingdom", origin: "Sri Lanka", rate: "0% tariff", agreement: "DCTS Enhanced Preferences", status: "Favorable", originRule: "No material restriction.", note: "" },
-      { market: "United Kingdom", origin: "India", rate: "Zero tariff", agreement: "UK-India CETA (India-UK Comprehensive Economic and Trade Agreement)", status: "Favorable", originRule: "No restriction on materials, but total value added from processing in India must reach 40% of FOB value.", note: "" },
+/* ===== Data ===== */
+const rules = [{"market":"United States","origin":"Vietnam","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates; check the 10-digit HTS for the actual rate."},{"market":"United States","origin":"Indonesia","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates; check the 10-digit HTS for the actual rate."},{"market":"United States","origin":"Cambodia","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates; check the 10-digit HTS for the actual rate."},{"market":"United States","origin":"El Salvador","rate":"0% tariff","agreement":"CAFTA-DR (Dominican Republic–Central America FTA)","status":"Favorable (verify conditions)","originRule":"Yarn-forward: CAFTA countries or the U.S.","note":"Applies to Costa Rica, El Salvador, Honduras, Guatemala, Nicaragua, Dominican Republic."},{"market":"United States","origin":"Guatemala","rate":"0% tariff","agreement":"CAFTA-DR (Dominican Republic–Central America FTA)","status":"Favorable (verify conditions)","originRule":"Yarn-forward: CAFTA countries or the U.S.","note":"Applies to Costa Rica, El Salvador, Honduras, Guatemala, Nicaragua, Dominican Republic."},{"market":"United States","origin":"Bangladesh","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates."},{"market":"United States","origin":"Jordan","rate":"0% tariff","agreement":"U.S.–Jordan FTA","status":"Favorable (verify conditions)","originRule":"No material restriction, but at least 35% of value must be processed in Jordan.","note":"Keep value-content and production records."},{"market":"United States","origin":"Egypt","rate":"0% tariff","agreement":"QIZ-Egypt (Qualifying Industrial Zones)","status":"Favorable (verify conditions)","originRule":"No material restriction, but production must be completed within an Egyptian QIZ, with total value-added reaching 35% of FOB value, of which:\n1. Egyptian value-added at least 11.7%\n2. Israeli value-added at least 10.5%\n3. The remainder may come from the Egyptian QIZ, Israel or the U.S.","note":"Confirm QIZ eligibility and value-added ratios."},{"market":"United States","origin":"Sri Lanka","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates; check the 10-digit HTS for the actual rate."},{"market":"United States","origin":"India","rate":"approx. 15.3% on average","agreement":"No preferential tariff","status":"Unfavorable","originRule":"No FTA preference currently.","note":"Based on U.S. MFN rates; check the 10-digit HTS for the actual rate."},{"market":"Europe","origin":"Vietnam","rate":"42.5% of garments duty-free immediately, the rest phased down to 0% by 2027","agreement":"EU–Vietnam FTA (EVFTA)","status":"Favorable (verify conditions)","originRule":"Fabric: Vietnam, South Korea, or countries that in future have FTAs with both the EU and Vietnam.","note":""},{"market":"Europe","origin":"Indonesia","rate":"9.6%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"Standard GSP: fabric must come from Cambodia, Indonesia, Vietnam, the Philippines, Myanmar, Laos, etc.","note":"Indonesia–EU CEPA (IEU-CEPA) was formally signed on 21 Nov 2026 and is expected to enter into force in Indonesia in January 2027."},{"market":"Europe","origin":"Cambodia","rate":"0% tariff / a small portion 12%","agreement":"EU Everything But Arms (EBA)","status":"Favorable (verify conditions)","originRule":"No material restriction.","note":"Some EBA preferences have been withdrawn; depends on items."},{"market":"Europe","origin":"El Salvador","rate":"0% tariff","agreement":"EU–Central America Association Agreement (EU-CAAA)","status":"Favorable (verify conditions)","originRule":"Fabric: Central America, EU, Mexico, South America, Caribbean, etc.; or unrestricted yarn source but fabric must be made in the beneficiary country.","note":"Some items subject to quotas."},{"market":"Europe","origin":"Guatemala","rate":"0% tariff","agreement":"EU–Central America Association Agreement (EU-CAAA)","status":"Favorable (verify conditions)","originRule":"Fabric: Central America, EU, Mexico, South America, Caribbean, etc.; or unrestricted yarn source but fabric must be made in the beneficiary country.","note":"Some items subject to quotas."},{"market":"Europe","origin":"Bangladesh","rate":"0% tariff","agreement":"EU Everything But Arms (EBA)","status":"Favorable","originRule":"No material restriction.","note":"LDC-based preference; still confirm the latest EBA status."},{"market":"Europe","origin":"Jordan","rate":"0% tariff","agreement":"EU–Jordan Association Agreement","status":"Favorable (verify conditions)","originRule":"No material restriction, but at least 70% of value must be processed in Jordan, and 15% of the workforce must be Syrian refugees.","note":""},{"market":"Europe","origin":"Egypt","rate":"0% tariff","agreement":"EU–Egypt Association Agreement","status":"Favorable (verify conditions)","originRule":"Fabric: Egypt, Jordan, Turkey (or third-country yarn allowed if the fabric is woven or printed first), and at least 60% of value processed in Egypt.","note":"Confirm material origin and value content."},{"market":"Europe","origin":"Sri Lanka","rate":"0% tariff","agreement":"GSP+ (Special Incentive Arrangement)","status":"Favorable (verify conditions)","originRule":"Fabric: Bangladesh, India, Sri Lanka, Pakistan, etc.","note":""},{"market":"Europe","origin":"India","rate":"mostly 9.6%","agreement":"Standard GSP / EU–India FTA","status":"Neutral / depends on items","originRule":"Fabric: Bangladesh, India, Sri Lanka, Pakistan, etc.","note":"The EU–India FTA was signed in Jan 2026 but is not yet formally in force; await detailed rules after entry into force."},{"market":"Japan","origin":"Vietnam","rate":"70% of products duty-free immediately, the rest phased down to 0% from 2022；0% tariff","agreement":"RCEP (Regional Comprehensive Economic Partnership) / AJCEP (ASEAN–Japan CEP)","status":"Favorable (verify conditions)","originRule":"RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.","note":""},{"market":"Japan","origin":"Indonesia","rate":"70% of products duty-free immediately, the rest phased down to 0% from 2023；0% tariff","agreement":"RCEP (Regional Comprehensive Economic Partnership) / AJCEP (ASEAN–Japan CEP)","status":"Favorable (verify conditions)","originRule":"RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.","note":""},{"market":"Japan","origin":"Cambodia","rate":"0% tariff；0% tariff；70% of products duty-free immediately, the rest phased down to 0% from 2022","agreement":"LDC preferences (Least Developed Country) / AJCEP (ASEAN–Japan CEP) / RCEP (Regional Comprehensive Economic Partnership)","status":"Favorable","originRule":"LDC and RCEP: no material restriction; AJCEP: fabric must come from the 10 ASEAN countries.","note":""},{"market":"Japan","origin":"El Salvador","rate":"0% – 7.2%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Preferential rates vary by item."},{"market":"Japan","origin":"Guatemala","rate":"0% – 7.2%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Preferential rates vary by item."},{"market":"Japan","origin":"Bangladesh","rate":"0% tariff","agreement":"LDC preferences (Least Developed Country) / Japan–Bangladesh EPA (BJEPA)","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"Japan","origin":"Jordan","rate":"0% – 7.2%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Preferential rates vary by item."},{"market":"Japan","origin":"Egypt","rate":"0% – 7.2%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Preferential rates vary by item."},{"market":"Japan","origin":"Sri Lanka","rate":"0% – 7.2%","agreement":"Standard GSP","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Preferential rates vary by item."},{"market":"Japan","origin":"India","rate":"0% tariff","agreement":"India–Japan CEPA","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"Canada","origin":"Vietnam","rate":"0% tariff","agreement":"CPTPP","status":"Favorable (verify conditions)","originRule":"Yarn-forward: Vietnam or CPTPP countries.","note":"Be careful if yarn comes from non-CPTPP countries."},{"market":"Canada","origin":"Indonesia","rate":"currently ~18% on average","agreement":"Indonesia–Canada CEPA (ICA-CEPA) (in force from 1 Dec 2026)","status":"Neutral / depends on items","originRule":"Per the rules of origin published upon ICA-CEPA's entry into force.","note":"Indonesia–Canada CEPA (ICA-CEPA) is confirmed to enter into force on 1 Dec 2026; general (MFN) rates apply until then."},{"market":"Canada","origin":"Cambodia","rate":"0% tariff","agreement":"LDC preferences (Least Developed Country)","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"Canada","origin":"El Salvador","rate":"No single tariff rule; check item by item; some products better than MFN","agreement":"General Preferential Tariff (GPT)","status":"Neutral / depends on items","originRule":"Mostly no material restriction.","note":""},{"market":"Canada","origin":"Guatemala","rate":"~18% on average","agreement":"MFN","status":"Unfavorable","originRule":"No FTA preference currently.","note":""},{"market":"Canada","origin":"Bangladesh","rate":"0% tariff","agreement":"LDC preferences (Least Developed Country)","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"Canada","origin":"Jordan","rate":"0% tariff","agreement":"Canada–Jordan FTA (CJFTA)","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"Canada","origin":"Egypt","rate":"Some items better than MFN","agreement":"General Preferential Tariff (GPT)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Confirm against Canada's GPT and HS details."},{"market":"Canada","origin":"Sri Lanka","rate":"Some items better than MFN","agreement":"General Preferential Tariff (GPT)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Rates vary by item."},{"market":"Canada","origin":"India","rate":"~18% on average","agreement":"MFN","status":"Unfavorable","originRule":"No FTA preference currently.","note":""},{"market":"United Kingdom","origin":"Vietnam","rate":"42.5% of garments duty-free immediately, the rest phased down to 0% by 2027；0% tariff","agreement":"UK–Vietnam FTA (UKVFTA) / CPTPP","status":"Favorable (verify conditions)","originRule":"UKVFTA fabric: Vietnam, South Korea, etc.; CPTPP yarn-forward: Vietnam or CPTPP countries, excl. Mexico/Canada.","note":"","details":["UK–Vietnam FTA (UKVFTA): 42.5% of garments duty-free immediately, the rest phased to 0% by 2027.","CPTPP: 0% tariff; Origin: yarn-forward, yarn must come from Vietnam or CPTPP countries, excl. Mexico/Canada."]},{"market":"United Kingdom","origin":"Indonesia","rate":"mostly 9.6%","agreement":"DCTS Standard Preferences","status":"Neutral / depends on items","originRule":"Fabric: Cambodia/Indonesia/Vietnam/Philippines/Myanmar/Laos/India/Sri Lanka/Bangladesh, etc.","note":"From 2027 Indonesia is no longer eligible for DCTS; no preference, ~12% on average."},{"market":"United Kingdom","origin":"Cambodia","rate":"0% tariff","agreement":"DCTS Comprehensive Preferences","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"United Kingdom","origin":"El Salvador","rate":"0% tariff","agreement":"UK–Central America Association Agreement (UK-CAAA)","status":"Favorable (verify conditions)","originRule":"Fabric: Central & South America, Caribbean, Mexico, EU, UK; or unrestricted yarn source but fabric must be made in the beneficiary country.","note":"Some items subject to quotas."},{"market":"United Kingdom","origin":"Guatemala","rate":"0% tariff","agreement":"UK–Central America Association Agreement (UK-CAAA)","status":"Favorable (verify conditions)","originRule":"Fabric: Central & South America, Caribbean, Mexico, EU, UK; or unrestricted yarn source but fabric must be made in the beneficiary country.","note":"Some items subject to quotas."},{"market":"United Kingdom","origin":"Bangladesh","rate":"0% tariff","agreement":"DCTS Comprehensive Preferences","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"United Kingdom","origin":"Jordan","rate":"0% tariff","agreement":"UK–Jordan Association Agreement","status":"Favorable (verify conditions)","originRule":"No material restriction, but 15% of the workforce must be Syrian refugees.","note":""},{"market":"United Kingdom","origin":"Egypt","rate":"0% tariff","agreement":"UK–Egypt Association Agreement","status":"Favorable (verify conditions)","originRule":"Fabric: EU, Turkey, UK, Switzerland, Iceland, Norway, Jordan, Israel; or unrestricted yarn source but fabric must be made in Egypt.","note":"Confirm material origin."},{"market":"United Kingdom","origin":"Sri Lanka","rate":"0% tariff","agreement":"DCTS Enhanced Preferences","status":"Favorable","originRule":"No material restriction.","note":""},{"market":"United Kingdom","origin":"India","rate":"0% tariff","agreement":"UK-India CETA (India–UK Comprehensive Economic and Trade Agreement)","status":"Favorable","originRule":"No restriction on materials, but total value added from processing in India must reach 40% of FOB value.","note":"UK-India CETA entered into force on 15 July 2026."},{"market":"Australia","origin":"Vietnam","rate":"0% tariff；0% tariff；70% of products duty-free immediately, the rest phased down to 0% from 2022","agreement":"CPTPP / AANZFTA (ASEAN–Australia–NZ FTA) / RCEP (Regional Comprehensive Economic Partnership)","status":"Favorable (verify conditions)","originRule":"CPTPP yarn-forward; RCEP and AANZFTA: mostly no material restriction.","note":"","details":["CPTPP: 0% tariff; Origin: yarn-forward, yarn must come from Vietnam or CPTPP countries.","AANZFTA (ASEAN–Australia–NZ FTA): 0% tariff; Origin: mostly no material restriction.","RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2022; Origin: mostly no material restriction."]},{"market":"Australia","origin":"Indonesia","rate":"0% tariff；0% tariff；70% of products duty-free immediately, the rest phased down to 0% from 2023","agreement":"AANZFTA (ASEAN–Australia–NZ FTA) / Indonesia–Australia CEPA (IA-CEPA) / RCEP (Regional Comprehensive Economic Partnership)","status":"Favorable","originRule":"Mostly no material restriction.","note":"","details":["AANZFTA (ASEAN–Australia–NZ FTA): 0% tariff; Origin: mostly no material restriction.","Indonesia–Australia CEPA (IA-CEPA): 0% tariff; Origin: mostly no material restriction.","RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2023; Origin: mostly no material restriction."]},{"market":"Australia","origin":"Cambodia","rate":"0% tariff；0% tariff；70% of products duty-free immediately, the rest phased down to 0% from 2022","agreement":"LDC preferences (Least Developed Country) / AANZFTA (ASEAN–Australia–NZ FTA) / RCEP (Regional Comprehensive Economic Partnership)","status":"Favorable","originRule":"Mostly no material restriction.","note":"","details":["LDC preferences (Least Developed Country): 0% tariff; Origin: no material restriction.","AANZFTA (ASEAN–Australia–NZ FTA): 0% tariff; Origin: mostly no material restriction.","RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2022; Origin: mostly no material restriction."]},{"market":"Australia","origin":"El Salvador","rate":"approx. 5% on average","agreement":"Developing Country Tariff Scheme (DCS)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Check detailed rates."},{"market":"Australia","origin":"Guatemala","rate":"approx. 5% on average","agreement":"Developing Country Tariff Scheme (DCS)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Check detailed rates."},{"market":"Australia","origin":"Bangladesh","rate":"0% tariff","agreement":"LDC preferences (Least Developed Country)","status":"Favorable","originRule":"No material restriction.","note":"Confirm the latest LDC eligibility."},{"market":"Australia","origin":"Jordan","rate":"approx. 5% on average","agreement":"Developing Country Tariff Scheme (DCS)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Check detailed rates."},{"market":"Australia","origin":"Egypt","rate":"approx. 5% on average","agreement":"Developing Country Tariff Scheme (DCS)","status":"Neutral / depends on items","originRule":"No material restriction.","note":"Check detailed rates."},{"market":"Australia","origin":"Sri Lanka","rate":"approx. 5% on average","agreement":"Developing Country Tariff Scheme (DCS)","status":"Neutral / depends on items","originRule":"No material restriction.","note":""},{"market":"Australia","origin":"India","rate":"0% tariff","agreement":"India–Australia ECTA (Ind-Aus ECTA)","status":"Favorable","originRule":"No material restriction.","note":""}];
 
-      { market: "Australia", origin: "Vietnam", rate: "0% tariff\uff1b0% tariff\uff1b70% of products duty-free immediately, the rest phased down to 0% from 2022", agreement: "CPTPP / AANZFTA (ASEAN\u2013Australia\u2013NZ FTA) / RCEP (Regional Comprehensive Economic Partnership)", status: "Favorable (verify conditions)", originRule: "CPTPP yarn-forward; RCEP and AANZFTA: mostly no material restriction.", note: "", details: ["CPTPP: 0% tariff; Origin: yarn-forward, yarn must come from Vietnam or CPTPP countries.", "AANZFTA (ASEAN\u2013Australia\u2013NZ FTA): 0% tariff; Origin: mostly no material restriction.", "RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2022; Origin: mostly no material restriction."] },
-      { market: "Australia", origin: "Indonesia", rate: "0% tariff\uff1b0% tariff\uff1b70% of products duty-free immediately, the rest phased down to 0% from 2023", agreement: "AANZFTA (ASEAN\u2013Australia\u2013NZ FTA) / Indonesia\u2013Australia CEPA (IA-CEPA) / RCEP (Regional Comprehensive Economic Partnership)", status: "Favorable", originRule: "Mostly no material restriction.", note: "", details: ["AANZFTA (ASEAN\u2013Australia\u2013NZ FTA): 0% tariff; Origin: mostly no material restriction.", "Indonesia\u2013Australia CEPA (IA-CEPA): 0% tariff; Origin: mostly no material restriction.", "RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2023; Origin: mostly no material restriction."] },
-      { market: "Australia", origin: "Cambodia", rate: "0% tariff\uff1b0% tariff\uff1b70% of products duty-free immediately, the rest phased down to 0% from 2022", agreement: "LDC preferences (Least Developed Country) / AANZFTA (ASEAN\u2013Australia\u2013NZ FTA) / RCEP (Regional Comprehensive Economic Partnership)", status: "Favorable", originRule: "Mostly no material restriction.", note: "", details: ["LDC preferences (Least Developed Country): 0% tariff; Origin: no material restriction.", "AANZFTA (ASEAN\u2013Australia\u2013NZ FTA): 0% tariff; Origin: mostly no material restriction.", "RCEP (Regional Comprehensive Economic Partnership): 70% of products duty-free immediately, the rest phased to 0% from 2022; Origin: mostly no material restriction."] },
-      { market: "Australia", origin: "El Salvador", rate: "approx. 5% on average", agreement: "Developing Country tariff Scheme (DCS)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Check detailed rates." },
-      { market: "Australia", origin: "Guatemala", rate: "approx. 5% on average", agreement: "Developing Country tariff Scheme (DCS)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Check detailed rates." },
-      { market: "Australia", origin: "Bangladesh", rate: "0% tariff", agreement: "LDC preferences (Least Developed Country)", status: "Favorable", originRule: "No material restriction.", note: "Confirm the latest LDC eligibility." },
-      { market: "Australia", origin: "Jordan", rate: "approx. 5% on average", agreement: "Developing Country tariff Scheme (DCS)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Check detailed rates." },
-      { market: "Australia", origin: "Egypt", rate: "approx. 5% on average", agreement: "Developing Country tariff Scheme (DCS)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "Check detailed rates." },
-      { market: "Australia", origin: "Sri Lanka", rate: "approx. 5% on average", agreement: "Developing Country tariff Scheme (DCS)", status: "Neutral / depends on items", originRule: "No material restriction.", note: "" },
-      { market: "Australia", origin: "India", rate: "0% tariff", agreement: "India\u2013Australia ECTA (Ind-Aus ECTA)", status: "Favorable", originRule: "No material restriction.", note: "" },
-    ];
+const marketLinks = {
+  "United States":[{label:"USITC Harmonized Tariff Schedule",url:"https://hts.usitc.gov/"}],
+  "Europe":[{label:"EU TARIC Consultation",url:"https://ec.europa.eu/taxation_customs/dds2/taric/taric_consultation.jsp?Lang=zh&SimDate=20230303&Area=BD&MeasType=&StartPub=&EndPub=&MeasText=&GoodsText=&op=&Taric=610510&search_text=goods&textSearch=&LangDescr=bg&OrderNum=&Regulation=&measStartDat=&measEndDat=&DatePicker=03-03-2023"}],
+  "Japan":[{label:"Japan Customs Tariff Schedule",url:"https://www.customs.go.jp/english/tariff/2023_02_21/index.htm"}],
+  "Canada":[{label:"CBSA Canadian Customs Tariff",url:"https://www.cbsa-asfc.gc.ca/trade-commerce/tariff-tarif/menu-eng.html"},{label:"Canada Tariff Finder",url:"https://www.tariffinder.ca/en/getStarted"}],
+  "United Kingdom":[{label:"UK Trade Tariff",url:"https://www.trade-tariff.service.gov.uk/find_commodity"}],
+  "Australia":[{label:"Australia FTA Portal",url:"https://ftaportal.dfat.gov.au/"}]
+};
 
-    const origins = [...new Set(rules.map((rule) => rule.origin))];
-    const markets = [...new Set(rules.map((rule) => rule.market))];
-    const marketLinks = {
-      "United States": [
-        { label: "USITC Harmonized Tariff Schedule", url: "https://hts.usitc.gov/" }
-      ],
-      "Europe": [
-        { label: "EU TARIC Consultation", url: "https://ec.europa.eu/taxation_customs/dds2/taric/taric_consultation.jsp?Lang=zh&SimDate=20230303&Area=BD&MeasType=&StartPub=&EndPub=&MeasText=&GoodsText=&op=&Taric=610510&search_text=goods&textSearch=&LangDescr=bg&OrderNum=&Regulation=&measStartDat=&measEndDat=&DatePicker=03-03-2023" }
-      ],
-      "Japan": [
-        { label: "Japan Customs Tariff Schedule", url: "https://www.customs.go.jp/english/tariff/2023_02_21/index.htm" }
-      ],
-      "Canada": [
-        { label: "CBSA Canadian Customs Tariff", url: "https://www.cbsa-asfc.gc.ca/trade-commerce/tariff-tarif/menu-eng.html" },
-        { label: "Canada Tariff Finder", url: "https://www.tariffinder.ca/en/getStarted" }
-      ],
-      "United Kingdom": [
-        { label: "UK Trade Tariff", url: "https://www.trade-tariff.service.gov.uk/find_commodity" }
-      ],
-      "Australia": [
-        { label: "Australia FTA Portal", url: "https://ftaportal.dfat.gov.au/" }
-      ]
-    };
-    const originSelect = document.querySelector("#originSelect");
-    const marketSelect = document.querySelector("#marketSelect");
-    const originChecks = document.querySelector("#originChecks");
-    const resultCard = document.querySelector("#resultCard");
-    const marketList = document.querySelector("#marketList");
-    const overviewSubtitle = document.querySelector("#overviewSubtitle");
-    const ruleTable = document.querySelector("#ruleTable");
-    const keywordInput = document.querySelector("#keywordInput");
-    const tableOriginFilter = document.querySelector("#tableOriginFilter");
-    const tableMarketFilter = document.querySelector("#tableMarketFilter");
-    const agreementFilter = document.querySelector("#agreementFilter");
+/* ===== Plain-language layer
+   d=product tariff  s=Trump Section 301 Forced Labor Tariff (U.S.)  t=estimated total  tc=condition  sv=sort value
+   cf/cy = Chinese fabric / yarn allowed: y yes, n no, na no preference anyway   p=conclusion  soon=upcoming agreement */
+const NOPREF_US = "No preference: product tariff approx. 15.3%, plus a 10% Trump Section 301 Forced Labor Tariff.";
+const CAFTA_P = "Meeting CAFTA-DR rules gives a 0% tariff and exemption from the Trump Section 301 Forced Labor Tariff; the key is that yarn must come from CAFTA countries or the U.S. — Chinese yarn and fabric are not allowed.";
+const CAFTA_IFNOT = "If the rules of origin are not met, the 0% rate does not apply and the 10% Trump Section 301 Forced Labor Tariff is added.";
+const JP_GSP = {d:"0%–7.2%",t:"0%–7.2%",tc:"Varies by item",sv:3.6,cf:"y",cy:"y",p:"GSP preferential rates of 0%–7.2% depending on the item; no material restriction."};
+const AU_DCS = {d:"approx. 5%",t:"approx. 5%",sv:5,cf:"y",cy:"y",p:"DCS preference, approx. 5% on average; no material restriction."};
+const LDC0 = p => ({d:"0%",t:"0%",sv:0,cf:"y",cy:"y",p});
+const AUG = {
+  "United States|Vietnam":{d:"approx. 15.3%",s:"12.5%",t:"approx. 27.8%",sv:27.8,cf:"na",cy:"na",p:"No preference: product tariff approx. 15.3%, plus a 12.5% Trump Section 301 Forced Labor Tariff — one of the highest-cost origins for the U.S."},
+  "United States|Indonesia":{d:"approx. 15.3%",s:"10%",t:"approx. 25.3%",sv:25.3,cf:"na",cy:"na",p:NOPREF_US},
+  "United States|Cambodia":{d:"approx. 15.3%",s:"10%",t:"approx. 25.3%",sv:25.3,cf:"na",cy:"na",p:NOPREF_US},
+  "United States|El Salvador":{d:"0%",s:"0% (if CAFTA-DR is met)",t:"0%",tc:"Must meet CAFTA-DR origin rules",sv:0,cf:"n",cy:"n",p:CAFTA_P,ifnot:CAFTA_IFNOT},
+  "United States|Guatemala":{d:"0%",s:"0% (if CAFTA-DR is met)",t:"0%",tc:"Must meet CAFTA-DR origin rules",sv:0,cf:"n",cy:"n",p:CAFTA_P,ifnot:CAFTA_IFNOT},
+  "United States|Bangladesh":{d:"approx. 15.3%",s:"10%",t:"approx. 25.3%",sv:25.3,cf:"na",cy:"na",p:NOPREF_US},
+  "United States|Jordan":{d:"0%",s:"10%",t:"approx. 10%",tc:"Jordan value added ≥ 35%",sv:10,cf:"y",cy:"y",p:"0% product tariff with no restriction on material origin, but at least 35% of value must be added in Jordan; plus a 10% Trump Section 301 Forced Labor Tariff."},
+  "United States|Egypt":{d:"0%",s:"12.5%",t:"approx. 12.5%",tc:"Must be produced in a QIZ",sv:12.5,cf:"y",cy:"y",p:"0% product tariff with no restriction on material origin, but production must take place in a QIZ and meet the Egyptian/Israeli value-added ratios; plus a 12.5% Trump Section 301 Forced Labor Tariff."},
+  "United States|Sri Lanka":{d:"approx. 15.3%",s:"10%",t:"approx. 25.3%",sv:25.3,cf:"na",cy:"na",p:NOPREF_US},
+  "United States|India":{d:"approx. 15.3%",s:"10%",t:"approx. 25.3%",sv:25.3,cf:"na",cy:"na",p:NOPREF_US},
 
-    function fillSelect(select, values, preferred) {
-      select.innerHTML = values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-      select.value = preferred && values.includes(preferred) ? preferred : values[0];
-    }
+  "Europe|Vietnam":{d:"Partly 0%, the rest 0% by 2027",t:"Partly 0%",tc:"Remaining items reach 0% in 2027",sv:0.2,cf:"n",cy:"y",p:"Under EVFTA, 42.5% of garments are already at 0% and the rest reach 0% in 2027; fabric must be made in Vietnam or South Korea, yarn can be sourced elsewhere."},
+  "Europe|Indonesia":{d:"9.6%",t:"9.6%",sv:9.6,cf:"n",cy:"y",p:"GSP preferential rate of 9.6%; fabric must come from designated ASEAN countries. IEU-CEPA was formally signed on 21 Nov and is expected to enter into force in January 2027.",soon:"IEU-CEPA expected to enter into force Jan 2027"},
+  "Europe|Cambodia":{d:"Mostly 0% (12% for a small portion)",t:"Mostly 0%",tc:"12% for a small portion of items",sv:0.1,cf:"y",cy:"y",p:"EBA: 0% for most items, 12% for a small portion (some preferences withdrawn); no material restriction."},
+  "Europe|El Salvador":{d:"0%",t:"0%",tc:"Fabric made in designated regions",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in Central America or other designated regions (yarn can be sourced elsewhere); some items subject to quotas."},
+  "Europe|Guatemala":{d:"0%",t:"0%",tc:"Fabric made in designated regions",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in Central America or other designated regions (yarn can be sourced elsewhere); some items subject to quotas."},
+  "Europe|Bangladesh":{d:"0%",t:"0%",sv:0,cf:"y",cy:"y",p:"EBA 0% with no material restriction — one of the most favorable origins for Europe."},
+  "Europe|Jordan":{d:"0%",t:"0%",tc:"70% processed in Jordan + refugee employment",sv:0.8,cf:"y",cy:"y",p:"0%; no material restriction, but 70% of value must be processed in Jordan and 15% of the workforce must be Syrian refugees."},
+  "Europe|Egypt":{d:"0%",t:"0%",tc:"Fabric made in designated countries",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in Egypt/Jordan/Turkey (yarn can be sourced elsewhere), with 60% of value completed in Egypt."},
+  "Europe|Sri Lanka":{d:"0%",t:"0%",tc:"Fabric from designated South Asian countries",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must come from Bangladesh, India, Sri Lanka, Pakistan, etc."},
+  "Europe|India":{d:"Mostly 9.6%",t:"Mostly 9.6%",sv:9.6,cf:"n",cy:"y",p:"GSP mostly 9.6%; fabric must come from designated South Asian countries. The EU–India FTA is signed but not yet in force."},
 
-    function fillFilter(select, values, label) {
-      select.innerHTML = [`<option value="all">${escapeHtml(label)}</option>`]
-        .concat(values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
-        .join("");
-      select.value = "all";
-    }
+  "Japan|Vietnam":{d:"Best 0%",t:"Best 0%",tc:"Depends on the agreement used",sv:0.5,cf:"y",cy:"y",cfn:"via RCEP",p:"Via RCEP there is no material restriction, though some items are still being phased down; via AJCEP it is 0% immediately, but fabric must come from ASEAN."},
+  "Japan|Indonesia":{d:"Best 0%",t:"Best 0%",tc:"Depends on the agreement used",sv:0.5,cf:"y",cy:"y",cfn:"via RCEP",p:"Via RCEP there is no material restriction, though some items are still being phased down; via AJCEP it is 0% immediately, but fabric must come from ASEAN."},
+  "Japan|Cambodia":LDC0("LDC 0% with no material restriction — one of the most favorable origins for Japan."),
+  "Japan|El Salvador":JP_GSP, "Japan|Guatemala":JP_GSP, "Japan|Jordan":JP_GSP, "Japan|Egypt":JP_GSP, "Japan|Sri Lanka":JP_GSP,
+  "Japan|Bangladesh":LDC0("LDC 0% with no material restriction."),
+  "Japan|India":LDC0("India–Japan CEPA 0%, no material restriction."),
 
-    function fillOriginChecks() {
-      originChecks.innerHTML = origins.map((origin) => `
-        <label class="origin-check">
-          <input type="checkbox" value="${escapeHtml(origin)}" ${origin === originSelect.value ? "checked" : ""}>
-          <span>${escapeHtml(origin)}</span>
-        </label>
-      `).join("");
-    }
+  "Canada|Vietnam":{d:"0%",t:"0%",tc:"Yarn from CPTPP countries",sv:0.5,cf:"n",cy:"n",p:"CPTPP 0%, but yarn must come from Vietnam or CPTPP countries — Chinese yarn and fabric are not allowed."},
+  "Canada|Indonesia":{d:"approx. 18%",t:"approx. 18%",tc:"ICA-CEPA applies from 1 Dec",sv:18,cf:"na",cy:"na",p:"No preference currently, approx. 18% on average; ICA-CEPA is confirmed to enter into force on 1 Dec 2026, after which tariffs are expected to fall.",soon:"ICA-CEPA in force from 1 Dec 2026"},
+  "Canada|Cambodia":LDC0("LDC 0%, no material restriction."),
+  "Canada|El Salvador":{d:"Varies by item",t:"Varies by item",tc:"Some items below the general rate",sv:12,cf:"y",cy:"y",cfn:"mostly",p:"GPT: some items are lower than the general rate; there is no fixed rate — check item by item by HS code."},
+  "Canada|Guatemala":{d:"approx. 18%",t:"approx. 18%",sv:18,cf:"na",cy:"na",p:"No preference, approx. 18% on average."},
+  "Canada|Bangladesh":LDC0("LDC 0%, no material restriction."),
+  "Canada|Jordan":LDC0("CJFTA 0%, no material restriction."),
+  "Canada|Egypt":{d:"Varies by item",t:"Varies by item",tc:"Some items below the general rate",sv:12,cf:"y",cy:"y",p:"GPT: some items are lower than the general rate; confirm by HS code."},
+  "Canada|Sri Lanka":{d:"Varies by item",t:"Varies by item",tc:"Some items below the general rate",sv:12,cf:"y",cy:"y",p:"GPT: some items are lower than the general rate; rates vary by item."},
+  "Canada|India":{d:"approx. 18%",t:"approx. 18%",sv:18,cf:"na",cy:"na",p:"No preference, approx. 18% on average."},
 
-    function checkedOrigins() {
-      return [...originChecks.querySelectorAll("input:checked")].map((input) => input.value);
-    }
+  "United Kingdom|Vietnam":{d:"Best 0%",t:"Best 0%",tc:"Depends on the agreement used",sv:0.2,cf:"n",cy:"y",cyn:"via UKVFTA",p:"Via CPTPP it is 0%, but yarn must come from CPTPP countries; via UKVFTA fabric must be made in Vietnam/South Korea, with some items reaching 0% only in 2027."},
+  "United Kingdom|Indonesia":{d:"Mostly 9.6%",t:"Mostly 9.6%",tc:"approx. 12% from 2027",sv:9.6,cf:"n",cy:"y",p:"DCTS mostly 9.6%; from 2027 Indonesia is no longer eligible, approx. 12% on average."},
+  "United Kingdom|Cambodia":LDC0("DCTS Comprehensive tier 0%, no material restriction."),
+  "United Kingdom|El Salvador":{d:"0%",t:"0%",tc:"Fabric made in designated regions",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in the beneficiary country or other designated regions (yarn can be sourced elsewhere); some items subject to quotas."},
+  "United Kingdom|Guatemala":{d:"0%",t:"0%",tc:"Fabric made in designated regions",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in the beneficiary country or other designated regions (yarn can be sourced elsewhere); some items subject to quotas."},
+  "United Kingdom|Bangladesh":LDC0("DCTS Comprehensive tier 0%, no material restriction."),
+  "United Kingdom|Jordan":{d:"0%",t:"0%",tc:"15% Syrian refugee workforce",sv:0.1,cf:"y",cy:"y",p:"0%; no material restriction, but 15% of the workforce must be Syrian refugees."},
+  "United Kingdom|Egypt":{d:"0%",t:"0%",tc:"Fabric made in designated countries",sv:0.5,cf:"n",cy:"y",p:"0%; fabric must be made in Egypt or designated countries (yarn can be sourced elsewhere)."},
+  "United Kingdom|Sri Lanka":LDC0("DCTS Enhanced tier 0%, no material restriction."),
+  "United Kingdom|India":{d:"0%",t:"0%",tc:"India value added ≥ 40%",sv:0,cf:"y",cy:"y",p:"UK-India CETA entered into force on 15 July 2026: 0% tariff, no material restriction, but value added in India must reach 40% of FOB."},
 
-    function setSingleCheckedOrigin(origin) {
-      originChecks.querySelectorAll("input").forEach((input) => {
-        input.checked = input.value === origin;
-      });
-    }
+  "Australia|Vietnam":{d:"0%",t:"0%",sv:0.3,cf:"y",cy:"y",cfn:"via RCEP / AANZFTA",p:"Via RCEP or AANZFTA, materials are mostly unrestricted and 0% is achievable; CPTPP requires yarn-forward."},
+  "Australia|Indonesia":LDC0("AANZFTA / IA-CEPA 0%, mostly no material restriction."),
+  "Australia|Cambodia":LDC0("LDC 0%, no material restriction."),
+  "Australia|El Salvador":AU_DCS, "Australia|Guatemala":AU_DCS, "Australia|Jordan":AU_DCS, "Australia|Egypt":AU_DCS, "Australia|Sri Lanka":AU_DCS,
+  "Australia|Bangladesh":LDC0("LDC 0%, no material restriction."),
+  "Australia|India":LDC0("ECTA 0%, no material restriction.")
+};
 
-    function normalizeCheckedOrigins() {
-      const checked = checkedOrigins();
-      if (!checked.length) {
-        const fallback = originSelect.value || origins[0];
-        setSingleCheckedOrigin(fallback);
-        return [fallback];
-      }
-      if (!checked.includes(originSelect.value)) {
-        originSelect.value = checked[0];
-      }
-      return checkedOrigins();
-    }
+const CPTPP_MEMBERS = "Japan, Canada, Australia, New Zealand, Singapore, Malaysia, Brunei, Vietnam, Mexico, Chile, Peru, United Kingdom";
+const GLOSS = [
+  ["FTA","Free Trade Agreement: countries agree to cut tariffs on each other's goods. To qualify, products must meet the rules of origin."],
+  ["MFN","General (Most-Favoured-Nation) rate: the normal tariff applied when no agreement or preference applies."],
+  ["GSP+","EU special incentive arrangement for countries that implement human-rights, labour and environmental conventions; apparel is mostly 0%."],
+  ["GSP","Generalised System of Preferences: tariff cuts granted unilaterally by developed countries to developing countries — lower than the general rate, but not always 0%."],
+  ["LDC","Least Developed Country preferences for UN-designated LDCs; apparel is mostly 0%, usually with fewer material restrictions."],
+  ["EBA","EU \"Everything But Arms\": duty-free treatment the EU grants to least developed countries."],
+  ["DCTS","UK Developing Countries Trading Scheme (the UK's GSP). Three tiers: Comprehensive (most favorable), Enhanced, Standard."],
+  ["GPT","Canada's General Preferential Tariff (Canada's GSP); some items are lower than the general rate."],
+  ["DCS","Australia's Developing Country Tariff Scheme (Australia's GSP)."],
+  ["CPTPP","Comprehensive and Progressive Agreement for Trans-Pacific Partnership. 12 members: " + CPTPP_MEMBERS + ". Apparel generally follows the yarn-forward rule."],
+  ["Yarn-forward","Production must take place in member countries from the yarn stage onward — yarn, fabric and garment all within the region; Chinese yarn or fabric does not qualify."],
+  ["Fabric-forward","Fabric must be woven or knitted in designated countries; yarn can be sourced elsewhere."],
+  ["FOB","Free On Board price. \"Value added ≥ 35% of FOB\" means the value added locally must be at least 35% of the export price."],
+  ["QIZ","Egypt's Qualifying Industrial Zones: goods made in a QIZ with the required share of Israeli content can enter the U.S. duty-free."],
+  ["Rules of origin","Rules that decide which country a product \"comes from\"; they must be met to receive agreement preferences."],
+  ["HS code","Harmonized System code. Actual rates depend on the HS code (10-digit HTS for the U.S.); please consult Logistics."]
+];
+const TIPS = {};
+GLOSS.forEach(([k,v]) => TIPS[k.toLowerCase()] = v);
+TIPS["cptpp countries"] = "CPTPP members (12): " + CPTPP_MEMBERS + ". (Costa Rica concluded accession negotiations in May 2026; not yet in force.)";
+/* Abbreviations must not touch other letters, so "CAFTA" / "EVFTA" are not tagged as "FTA" */
+const TERM_RE = new RegExp("(?<![A-Za-z])(" + Object.keys(TIPS).filter(k => k !== "cptpp").sort((a,b)=>b.length-a.length).map(t => t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|") + ")(?![A-Za-z])","gi");
 
-    function classForStatus(status) {
-      if (status === "Favorable") return "good";
-      if (status === "Unfavorable") return "bad";
-      return "mid";
-    }
+/* ===== helpers ===== */
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const gl = text => esc(text).replace(TERM_RE, m => {
+  const k = m.toLowerCase(), isLink = k === "cptpp countries";
+  return `<span class="term${isLink ? " link" : ""}" tabindex="0" data-tip="${esc(TIPS[k])}">${m}${isLink ? " ⓘ" : ""}</span>`;
+});
+const key = r => r.market + "|" + r.origin;
+const aug = r => AUG[key(r)] || {d:r.rate,t:r.rate,sv:99,cf:"na",cy:"na",p:""};
+function statusInfo(s){
+  if (s === "Favorable") return {cls:"good", label:"Favorable"};
+  if (s === "Unfavorable") return {cls:"bad", label:"No preference"};
+  if (s.includes("verify")) return {cls:"mid", label:"Favorable · conditions apply"};
+  return {cls:"mid", label:"Depends on item"};
+}
+function matChip(v, note, what){
+  if (v === "na") return `<span class="chip">${what}: — n/a</span>`;
+  if (v === "y") return `<span class="chip good">${what} ✓ ${note ? esc(note) : "OK"}</span>`;
+  return `<span class="chip bad">${what} ✗ Not allowed</span>`;
+}
+function matText(v, note){
+  if (v === "na") return "— No preference anyway; material origin does not affect the rate";
+  if (v === "y") return "✅ Yes" + (note ? ` (${note})` : "");
+  return "❌ No";
+}
+function agreementList(r){
+  if (r.details && r.details.length) return r.details.map(d => { const i = d.indexOf(": "); return {name:d.slice(0,i), body:d.slice(i+2)}; });
+  const names = r.agreement.split(/\s+\/\s+/);
+  const rates = r.rate.split("；");
+  if (names.length === rates.length && names.length > 1) return names.map((n,i)=>({name:n, body:rates[i]}));
+  return [{name:r.agreement, body:r.rate.replaceAll("；","; ")}];
+}
 
-    function pillClass(status) {
-      if (status === "Favorable") return "";
-      if (status === "Unfavorable") return "bad";
-      if (status.includes("pending")) return "neutral";
-      return "warning";
-    }
+/* ===== state ===== */
+const markets = [...new Set(rules.map(r => r.market))];
+const origins = [...new Set(rules.map(r => r.origin))];
+let market = US;
+let current = null;
+const checked = new Set();
+const STATUS_RANK = {"Favorable":0,"Favorable (verify conditions)":1,"Neutral / depends on items":2,"Unfavorable":3};
+function marketRules(){ return rules.filter(r => r.market === market).sort((a,b) => (aug(a).sv - aug(b).sv) || ((STATUS_RANK[a.status] ?? 9) - (STATUS_RANK[b.status] ?? 9))); }
 
-    function productDuty(rule) {
-      if (rule.market !== "United States") return rule.rate;
-      const productRates = {
-        "Vietnam": "approx. 15.3% on average",
-        "Indonesia": "approx. 15.3% on average",
-        "Cambodia": "approx. 15.3% on average",
-        "Bangladesh": "approx. 15.3% on average",
-        "Jordan": "0%",
-        "Egypt": "0%",
-        "El Salvador": "0%",
-        "Guatemala": "0%",
-        "Sri Lanka": "approx. 15.3% on average",
-        "India": "approx. 15.3% on average"
-      };
-      return productRates[rule.origin] || rule.rate;
-    }
+function renderMarkets(){
+  $("#marketSeg").innerHTML = markets.map(m => `<button class="${m===market?"on":""}" data-m="${esc(m)}">${esc(m)}</button>`).join("");
+}
 
-    function trumpTariff(rule) {
-      if (rule.market !== "United States") return "N/A";
-      if (rule.origin === "Vietnam" || rule.origin === "Egypt") return "12.5%";
-      if (rule.origin === "El Salvador" || rule.origin === "Guatemala") return "10% → 0%";
-      return "10%";
-    }
+function renderRank(){
+  const list = marketRules();
+  $("#rankTitle").textContent = market === US
+    ? `Exporting to the ${market}: estimated total burden by origin (low → high)`
+    : `Exporting to ${market}: tariffs by origin (low → high)`;
+  $("#rank").innerHTML = list.map(r => {
+    const a = aug(r), st = statusInfo(r.status);
+    return `<div class="row ${st.cls} ${current && key(current)===key(r) ? "sel":""}" data-k="${esc(key(r))}">
+      <input type="checkbox" data-c="${esc(key(r))}" ${checked.has(key(r))?"checked":""} aria-label="Add to comparison">
+      <div class="name">${esc(r.origin)} <span class="chip ${st.cls}">${st.label}</span></div>
+      <div class="rate">${esc(a.t)}${a.tc ? `<small>${esc(a.tc)}</small>` : ""}</div>
+      <div class="plain">${gl(a.p)}</div>
+      <div class="chips">${matChip(a.cf, a.cfn, "China fabric")}${matChip(a.cy, a.cyn, "China yarn")}${a.soon ? `<span class="chip flag">📅 ${esc(a.soon)}</span>` : ""}</div>
+    </div>`;
+  }).join("");
+}
 
-    function trumpAlertHtml(rule) {
-      if (rule.market !== "United States") return "";
-      const extra = rule.origin === "El Salvador" || rule.origin === "Guatemala"
-        ? `<div class="us-alert-extra">If CAFTA-DR rules of origin are met, garments are exempt from the Trump Section 301 Forced Labor Tariff, i.e. 10% → 0%.</div>`
-        : "";
-      const base = `
-        <div class="us-alert-main">In addition to the product tariff itself, the Trump Section 301 Forced Labor Tariff applies:<span class="us-alert-rate">${trumpTariff(rule)}</span></div>
-        ${extra}
-      `;
-      return base;
-    }
+function summaryText(r){
+  const a = aug(r);
+  const parts = [`${r.origin} → ${r.market}`, `Est. total burden: ${a.t}${a.tc ? ` (${a.tc})` : ""}`];
+  if (r.market === US) parts.push(`Product tariff ${a.d} + ${S301} ${a.s}`);
+  parts.push(`Agreement: ${r.agreement}`);
+  parts.push(`Rules of origin: ${r.originRule.replace(/\n/g," ")}`);
+  parts.push(`Data updated: ${DATA_DATE}; preliminary reference only — Logistics' confirmation prevails`);
+  return parts.join(" | ");
+}
 
-    function hasTradeAgreement(rule) {
-      return !/No preferential tariff|MFN/.test(rule.agreement);
-    }
+function renderDetail(){
+  const r = current; if (!r) return;
+  const a = aug(r), st = statusInfo(r.status);
+  const isUS = r.market === US;
+  const calc = isUS
+    ? `<div class="calc"><span class="c">Product tariff <b>${esc(a.d)}</b></span>+<span class="c">${S301} <b>${esc(a.s)}</b></span>=<span class="c">Est. <b>${esc(a.t)}</b></span></div>`
+    : `<div class="calc"><span class="c">Product tariff <b>${esc(a.d)}</b></span><span class="muted">No ${S301} in this market</span></div>`;
+  const agrees = agreementList(r).map(x => `<div class="agree"><b>${gl(x.name)}</b>${gl(x.body)}</div>`).join("");
+  const notes = [r.note && `<div class="note">${gl(r.note)}</div>`, a.ifnot && `<div class="note">${gl(a.ifnot)}</div>`, a.soon && `<div class="note flag">📅 ${gl(a.soon)}</div>`].filter(Boolean).join("") || `<div class="muted" style="font-size:13px">None</div>`;
+  const links = (marketLinks[r.market]||[]).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("");
+  $("#detail").innerHTML = `
+    <div class="head"><div class="route">${esc(r.origin)} → ${esc(r.market)}</div><span class="chip ${st.cls}">${st.label}</span></div>
+    <div class="big ${st.cls}">
+      <div class="lbl">${isUS ? `Estimated total burden (product tariff + ${S301})` : "Product tariff"}</div>
+      <div class="num">${esc(a.t)}</div>
+      ${a.tc ? `<div class="cond">Condition: ${esc(a.tc)}</div>` : ""}
+      ${calc}
+    </div>
+    <div class="sec"><h3>Conclusion</h3>
+      <div class="oneline"><span>${gl(a.p)}</span><button class="btn" id="copyBtn">Copy summary</button></div>
+    </div>
+    <div class="sec"><h3>Where can materials come from?</h3>
+      <div class="qa">
+        <span class="q">Can Chinese fabric be used?</span><span>${matText(a.cf, a.cfn)}</span>
+        <span class="q">Can Chinese yarn be used?</span><span>${matText(a.cy, a.cyn)}</span>
+      </div>
+      <div class="rawrule">Rule text: ${gl(r.originRule)}</div>
+    </div>
+    <div class="sec"><h3>Applicable agreements</h3>${agrees}</div>
+    <div class="sec"><h3>Notes</h3>${notes}</div>
+    <div class="sec"><h3>Next step</h3>
+      <div style="font-size:13.5px">For detailed ${gl("HS code")} rates, please consult Logistics or check the official system:</div>
+      <div class="links">${links}</div>
+    </div>`;
+  $("#copyBtn").onclick = () => copy(summaryText(r));
+}
 
-    function selectedRule() {
-      return rules.find((rule) => rule.origin === originSelect.value && rule.market === marketSelect.value);
-    }
-
-    function formatMultiline(value) {
-      return escapeHtml(value)
-        .replaceAll("；", "<br>")
-        .replaceAll("。", "。<br>")
-        .replace(/<br>$/g, "");
-    }
-
-    function agreementParts(value) {
-      return String(value)
-        .split(/\s+\/\s+|；/)
-        .map((part) => part.trim())
-        .filter(Boolean);
-    }
-
-    function normalizeTitleRate(value) {
-      return String(value).replace(/^0%$/, "0% tariff");
-    }
-
-    function detailToTitleItem(detail) {
-      const idx = detail.indexOf(":");
-      if (idx === -1) return null;
-      const agreement = detail.slice(0, idx).trim();
-      let rateText = detail.slice(idx + 1).trim();
-      rateText = rateText.split("; Origin")[0].trim();
-      rateText = rateText.replace(/[。.]$/, "");
-      rateText = normalizeTitleRate(rateText);
-      return { rateText, agreement };
-    }
-
-    function titleItems(rule, product) {
-      if (rule.details && rule.details.length) {
-        return rule.details.map(detailToTitleItem).filter(Boolean);
-      }
-      const rates = String(product).split("；").map((part) => part.trim()).filter(Boolean);
-      const agreements = agreementParts(rule.agreement);
-      if (rates.length > 1 && agreements.length > 1) {
-        return rates.map((rateText, index) => {
-          const agreement = agreements[index] || agreements[0];
-          const prefix = `${agreement}：`;
-          return { rateText: normalizeTitleRate(rateText.startsWith(prefix) ? rateText.slice(prefix.length) : rateText), agreement };
-        });
-      }
-      return [{ rateText: normalizeTitleRate(product), agreement: rule.agreement }];
-    }
-
-    function titleHtml(rule, product) {
-      return titleItems(rule, product).map((item) => `
-        <div class="title-line">
-          <div class="rate">${formatMultiline(normalizeTitleRate(item.rateText))}</div>
-          ${item.agreement ? `<span class="pill agree">${escapeHtml(item.agreement)}</span>` : ""}
-        </div>
-      `).join("") + `
-        <div class="title-line">
-          <span class="pill ${pillClass(rule.status)}">${escapeHtml(rule.status)}</span>
-        </div>
-      `;
-    }
-
-    function marketLinkHtml(market) {
-      const links = marketLinks[market] || [];
-      if (!links.length) return "";
-      return `
-        <div class="section">
-          <div class="section-title">Detailed HS-code rates</div>
-          <div class="section-body">Consult Logistics or refer to the official government tariff lookup system</div>
-          <div class="link-list">
-            ${links.map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join("")}
-          </div>
-        </div>
-      `;
-    }
-
-    function resultContent(rule) {
-      const product = productDuty(rule);
-      const alert = trumpAlertHtml(rule);
-      return `
-        <div class="result-top">
-          ${titleHtml(rule, product)}
-        </div>
-        <div class="agreement">${escapeHtml(rule.origin)} - ${escapeHtml(rule.market)}</div>
-        <div class="section">
-          <div class="section-title">Rules of origin</div>
-          <div class="section-body">${formatMultiline(rule.originRule)}</div>
-        </div>
-        ${marketLinkHtml(rule.market)}
-        ${rule.details ? `
-        <div class="section">
-          <div class="section-title">Preferences by agreement</div>
-          <div class="note">${rule.details.map((item) => `・${escapeHtml(item)}`).join("\n")}</div>
-        </div>
-        ` : ""}
-        ${rule.note ? `
-        <div class="section">
-          <div class="section-title">Notes</div>
-          <div class="note">${escapeHtml(rule.note)}</div>
-        </div>
-        ` : ""}
-        ${alert ? `
-        <div class="section">
-          <div class="us-alert">${alert}</div>
-        </div>
-        ` : ""}
-      `;
-    }
-
-    function updateResult() {
-      const selectedOrigins = normalizeCheckedOrigins();
-      const selectedRules = selectedOrigins
-        .map((origin) => rules.find((rule) => rule.origin === origin && rule.market === marketSelect.value))
-        .filter(Boolean);
-
-      if (!selectedRules.length) {
-        resultCard.innerHTML = `<div class="agreement">No data found</div>`;
-        return;
-      }
-
-      if (selectedRules.length === 1) {
-        resultCard.innerHTML = resultContent(selectedRules[0]);
-        return;
-      }
-
-      resultCard.innerHTML = `
-        <div class="compare-results">
-          ${selectedRules.map((rule) => `<section class="compare-card">${resultContent(rule)}</section>`).join("")}
-        </div>
-      `;
-    }
-
-    function updateMarketOverview() {
-      const rows = rules.filter((rule) => rule.market === marketSelect.value);
-      const selectedOrigins = checkedOrigins();
-      overviewSubtitle.textContent = `${marketSelect.value} market: relative advantage by production area`;
-      marketList.innerHTML = rows.map((rule) => `
-        <button class="market-row ${selectedOrigins.includes(rule.origin) ? "active" : ""}" data-origin="${escapeHtml(rule.origin)}" type="button">
-          <div class="origin-name">${escapeHtml(rule.origin)}</div>
-          <div class="market-summary">${escapeHtml(rule.rate)} | ${escapeHtml(rule.agreement)}</div>
-          <span class="status-dot ${classForStatus(rule.status)}" aria-label="${escapeHtml(rule.status)}"></span>
-        </button>
-      `).join("");
-
-      marketList.querySelectorAll(".market-row").forEach((row) => {
-        row.addEventListener("click", () => {
-          originSelect.value = row.dataset.origin;
-          setSingleCheckedOrigin(row.dataset.origin);
-          render();
-        });
-      });
-    }
-
-    function updateTable() {
-      const keyword = keywordInput.value.trim().toLowerCase();
-      const filtered = rules.filter((rule) => {
-        const haystack = `${rule.market} ${rule.origin} ${rule.rate} ${rule.agreement} ${rule.originRule} ${rule.note} ${rule.status} ${(rule.details || []).join(" ")}`.toLowerCase();
-        const keywordMatch = !keyword || haystack.includes(keyword);
-        const originMatch = tableOriginFilter.value === "all" || rule.origin === tableOriginFilter.value;
-        const marketMatch = tableMarketFilter.value === "all" || rule.market === tableMarketFilter.value;
-        const agreementMatch = agreementFilter.value === "all" ||
-          (agreementFilter.value === "yes" ? hasTradeAgreement(rule) : !hasTradeAgreement(rule));
-        return keywordMatch && originMatch && marketMatch && agreementMatch;
-      });
-
-      ruleTable.innerHTML = filtered.map((rule) => `
-        ${(() => {
-          const product = productDuty(rule);
-          const trump = trumpTariff(rule);
-          return `
-        <tr>
-          <td>${escapeHtml(rule.market)}</td>
-          <td>${escapeHtml(rule.origin)}</td>
-          <td><strong>${escapeHtml(product)}</strong><br><span class="pill ${pillClass(rule.status)}">${escapeHtml(rule.status)}</span></td>
-          <td><strong>${escapeHtml(trump)}</strong><br><span class="small">${escapeHtml(rule.market === "United States" ? "Section 301 forced labor tariff" : "Shown for U.S. market only")}</span></td>
-          <td>${escapeHtml(rule.agreement)}</td>
-          <td>${escapeHtml(rule.originRule)}${rule.details ? `<br><br><span class="small">${rule.details.map(escapeHtml).join("<br>")}</span>` : ""}</td>
-        </tr>
-          `;
-        })()}
-      `).join("");
-    }
-
-    function render() {
-      updateResult();
-      updateMarketOverview();
-      updateTable();
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    fillSelect(originSelect, origins, "Jordan");
-    fillSelect(marketSelect, markets, "United States");
-    fillOriginChecks();
-    fillFilter(tableOriginFilter, origins, "All production areas");
-    fillFilter(tableMarketFilter, markets, "All markets");
-    if (window.matchMedia("(max-width: 820px)").matches) {
-      document.querySelector("#dutyPrimer").open = false;
-    }
-    originSelect.addEventListener("change", () => {
-      setSingleCheckedOrigin(originSelect.value);
-      render();
-    });
-    marketSelect.addEventListener("change", render);
-    originChecks.addEventListener("change", render);
-    keywordInput.addEventListener("input", updateTable);
-    tableOriginFilter.addEventListener("change", updateTable);
-    tableMarketFilter.addEventListener("change", updateTable);
-    agreementFilter.addEventListener("change", updateTable);
-    render();
-  </script>
-</body>
-</html>
+function renderCompare(){
+  const sel = marketRules().filter(r => checked.has(key(r)));
+  $("#cmpPanel").hidden = sel.length < 2;
+  if (sel.l
